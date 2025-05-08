@@ -1,0 +1,28 @@
+SELECT 
+    C.name AS company,
+    SUM(
+        CASE 
+            WHEN T.time_in < T.time_out 
+                THEN DATEDIFF(MINUTE, T.time_out, T.time_in) + 1440
+            ELSE 
+                DATEDIFF(MINUTE, T.time_out, T.time_in)
+        END * Sub.flight_days
+    ) AS minutes
+FROM 
+    Company C
+JOIN 
+    Trip T ON C.ID_comp = T.id_comp
+JOIN 
+    (
+        SELECT 
+            trip_no,
+            COUNT(DISTINCT date) AS flight_days
+        FROM 
+            Pass_in_trip
+        GROUP BY 
+            trip_no
+    ) Sub ON T.trip_no = Sub.trip_no
+GROUP BY 
+    C.name
+ORDER BY 
+    C.name;
